@@ -17,4 +17,5 @@ public class Review {
     private Long productId;
     private int rating;
     private String comment;
+
 }
