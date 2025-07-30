@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.Review;
 import com.example.demo.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +26,12 @@ public class ReviewController {
     }
 
     @GetMapping("/{id}")
-    public Review getById(@PathVariable Long id) {
-        return repository.findById(id).orElse(null);
+    public ResponseEntity<Review> getById(@PathVariable Long id) {
+        return repository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
+
 
     @PutMapping("/{id}")
     public Review update(@PathVariable Long id, @RequestBody Review obj) {
