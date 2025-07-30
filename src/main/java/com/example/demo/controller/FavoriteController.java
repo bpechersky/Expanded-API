@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.model.Favorite;
 import com.example.demo.repository.FavoriteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +27,12 @@ public class FavoriteController {
     }
 
     @GetMapping("/{id}")
-    public Favorite getById(@PathVariable Long id) {
-        return repository.findById(id).orElse(null);
+    public ResponseEntity<Favorite> getFavoriteById(@PathVariable Long id) {
+        return repository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
 
     @PutMapping("/{id}")
     public Favorite update(@PathVariable Long id, @RequestBody Favorite obj) {
@@ -36,7 +41,13 @@ public class FavoriteController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        repository.deleteById(id);
+    public ResponseEntity<Object> deleteFavorite(@PathVariable Long id) {
+        return repository.findById(id)
+                .map(fav -> {
+                    repository.deleteById(id);
+                    return ResponseEntity.noContent().build(); // ✅ 204 if found and deleted
+                })
+                .orElse(ResponseEntity.notFound().build()); // ✅ 404 if not found
     }
+
 }
