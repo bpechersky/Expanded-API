@@ -58,7 +58,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/products")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int productId = productResponse.jsonPath().getInt("id");
@@ -70,7 +70,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/reviews")
                 .then()
-                .statusCode(200);
+                .statusCode(201);
 
         given()
                 .header("Authorization", TOKEN)
@@ -92,7 +92,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/products")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int productId = productResponse.jsonPath().getInt("id");
@@ -104,7 +104,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/reviews")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int reviewId = reviewResponse.jsonPath().getInt("id");
@@ -131,7 +131,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/products")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int productId = productResponse.jsonPath().getInt("id");
@@ -143,7 +143,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/reviews")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int reviewId = reviewResponse.jsonPath().getInt("id");
@@ -171,7 +171,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/products")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int productId = productResponse.jsonPath().getInt("id");
@@ -183,7 +183,7 @@ public class ProductReviewsTest {
                 .when()
                 .post("/api/reviews")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int reviewId = reviewResponse.jsonPath().getInt("id");
