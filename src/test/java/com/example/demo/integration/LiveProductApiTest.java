@@ -80,5 +80,36 @@ public class LiveProductApiTest {
                 .body("name", equalTo("UpdatedProduct"))
                 .body("price", equalTo(99.99f));
     }
+    @Test
+    public void deleteProductById() {
+        RestAssured.baseURI = "http://localhost:8080";
+
+        // Create a product first
+        Response postResponse = given()
+                .contentType("application/json")
+                .body("{\"name\": \"ProductToDelete\", \"price\": 25.00}")
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(200)
+                .extract().response();
+
+        int productId = postResponse.jsonPath().getInt("id");
+
+        // Delete the product
+        given()
+                .when()
+                .delete("/api/products/" + productId)
+                .then()
+                .statusCode(204); // No Content
+
+        // Try to GET the deleted product (should return 404 or 204 based on your API design)
+        given()
+                .when()
+                .get("/api/products/" + productId)
+                .then()
+                .statusCode(anyOf(is(404), is(204))); // Handle either 404 Not Found or 204 No Content
+    }
+
 
 }
