@@ -186,7 +186,7 @@ public class ProductReviewsTest {
                 .when()
                 .delete("/api/reviews/" + reviewId)
                 .then()
-                .statusCode(200);
+                .statusCode(204);
 
         // Confirm the review is gone (expect 404 or 204 depending on your API)
         given()
