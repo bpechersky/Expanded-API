@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.Review;
 import com.example.demo.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +21,17 @@ public class ReviewController {
         return repository.findAll();
     }
 
-    @PostMapping
+/*    @PostMapping
     public Review create(@RequestBody Review obj) {
         return repository.save(obj);
+    }*/
+
+    @PostMapping
+    public ResponseEntity<Review> createReview(@RequestBody Review review) {
+        Review savedReview = repository.save(review);
+        return new ResponseEntity<>(savedReview, HttpStatus.CREATED);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Review> getById(@PathVariable Long id) {

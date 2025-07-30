@@ -3,7 +3,10 @@ package com.example.demo.controller;
 
 import com.example.demo.model.Product;
 import com.example.demo.repository.ProductRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,8 +34,24 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product create(@RequestBody Product product) {
-        return repository.save(product);
+    public ResponseEntity<Product> createProduct(@RequestBody Product product,
+                                                 @AuthenticationPrincipal Jwt jwt) {
+        // Extract claims
+        String subject = jwt.getSubject(); // "sub" claim
+        String name = jwt.getClaimAsString("name");
+        Boolean isAdmin = jwt.getClaim("admin");
+
+        System.out.println("User Sub: " + subject);
+        System.out.println("Name: " + name);
+        System.out.println("Is Admin: " + isAdmin);
+
+        // (Optional) restrict based on claim
+        if (!Boolean.TRUE.equals(isAdmin)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        Product saved = repository.save(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")

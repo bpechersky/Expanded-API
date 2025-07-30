@@ -2,46 +2,57 @@ package com.example.demo.integration;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class ProductReviewsTest {
+
+    private static final String BASE_URL = "http://localhost:8080";
+    private static final String TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ"; // 🔐 Replace with real token
+
+    @BeforeClass
+    public void setup() {
+        RestAssured.baseURI = BASE_URL;
+    }
+
     @Test
     public void postReview() {
-        RestAssured.baseURI = "http://localhost:8080";
+        String uniqueName = "Reviewable Product " + UUID.randomUUID();
 
-        // First create a product to review
         Response productResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
-                .body("{\"name\": \"Reviewable Product\", \"price\": 45.00}")
+                .body("{\"name\": \"" + uniqueName + "\", \"price\": 45.00}")
                 .when()
                 .post("/api/products")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract().response();
 
         int productId = productResponse.jsonPath().getInt("id");
 
-        // Now post a review for the created product
         given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"productId\": " + productId + ", \"rating\": 5, \"comment\": \"Excellent product!\"}")
                 .when()
                 .post("/api/reviews")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("productId", equalTo(productId))
                 .body("rating", equalTo(5))
                 .body("comment", equalTo("Excellent product!"));
     }
+
     @Test
     public void getAllReviews() {
-        RestAssured.baseURI = "http://localhost:8080";
-
-        // Create a product to associate with the review
         Response productResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"name\": \"Reviewed Product\", \"price\": 65.00}")
                 .when()
@@ -52,8 +63,8 @@ public class ProductReviewsTest {
 
         int productId = productResponse.jsonPath().getInt("id");
 
-        // Create a review for that product
         given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"productId\": " + productId + ", \"rating\": 4, \"comment\": \"Good value.\"}")
                 .when()
@@ -61,8 +72,8 @@ public class ProductReviewsTest {
                 .then()
                 .statusCode(200);
 
-        // GET all reviews and check that response is not empty
         given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .when()
                 .get("/api/reviews")
@@ -74,10 +85,8 @@ public class ProductReviewsTest {
 
     @Test
     public void getReviewById() {
-        RestAssured.baseURI = "http://localhost:8080";
-
-        // Create a product to associate with the review
         Response productResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"name\": \"Target Product\", \"price\": 88.00}")
                 .when()
@@ -88,8 +97,8 @@ public class ProductReviewsTest {
 
         int productId = productResponse.jsonPath().getInt("id");
 
-        // Create a review
         Response reviewResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"productId\": " + productId + ", \"rating\": 3, \"comment\": \"Average quality\"}")
                 .when()
@@ -100,8 +109,8 @@ public class ProductReviewsTest {
 
         int reviewId = reviewResponse.jsonPath().getInt("id");
 
-        // GET the review by ID
         given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .when()
                 .get("/api/reviews/" + reviewId)
@@ -112,12 +121,11 @@ public class ProductReviewsTest {
                 .body("rating", equalTo(3))
                 .body("comment", equalTo("Average quality"));
     }
+
     @Test
     public void updateReviewById() {
-        RestAssured.baseURI = "http://localhost:8080";
-
-        // Create a product to associate with the review
         Response productResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"name\": \"Updatable Product\", \"price\": 77.00}")
                 .when()
@@ -128,8 +136,8 @@ public class ProductReviewsTest {
 
         int productId = productResponse.jsonPath().getInt("id");
 
-        // Create a review
         Response reviewResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"productId\": " + productId + ", \"rating\": 2, \"comment\": \"Needs improvement\"}")
                 .when()
@@ -140,8 +148,8 @@ public class ProductReviewsTest {
 
         int reviewId = reviewResponse.jsonPath().getInt("id");
 
-        // Update the review
         given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"productId\": " + productId + ", \"rating\": 5, \"comment\": \"Updated: Excellent!\"}")
                 .when()
@@ -153,12 +161,11 @@ public class ProductReviewsTest {
                 .body("rating", equalTo(5))
                 .body("comment", equalTo("Updated: Excellent!"));
     }
+
     @Test
     public void deleteReviewById() {
-        RestAssured.baseURI = "http://localhost:8080";
-
-        // Create a product to associate with the review
         Response productResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"name\": \"Product For Deletion\", \"price\": 59.99}")
                 .when()
@@ -169,8 +176,8 @@ public class ProductReviewsTest {
 
         int productId = productResponse.jsonPath().getInt("id");
 
-        // Create a review
         Response reviewResponse = given()
+                .header("Authorization", TOKEN)
                 .contentType("application/json")
                 .body("{\"productId\": " + productId + ", \"rating\": 1, \"comment\": \"Delete me\"}")
                 .when()
@@ -181,19 +188,18 @@ public class ProductReviewsTest {
 
         int reviewId = reviewResponse.jsonPath().getInt("id");
 
-        // Delete the review
         given()
+                .header("Authorization", TOKEN)
                 .when()
                 .delete("/api/reviews/" + reviewId)
                 .then()
                 .statusCode(204);
 
-        // Confirm the review is gone (expect 404 or 204 depending on your API)
         given()
+                .header("Authorization", TOKEN)
                 .when()
                 .get("/api/reviews/" + reviewId)
                 .then()
                 .statusCode(404);
     }
-
 }
