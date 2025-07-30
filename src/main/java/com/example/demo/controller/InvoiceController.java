@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.Invoice;
 import com.example.demo.repository.InvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +22,11 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public Invoice create(@RequestBody Invoice obj) {
-        return repository.save(obj);
+    public ResponseEntity<Invoice> create(@RequestBody Invoice invoice) {
+        Invoice saved = repository.save(invoice);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+
 
     // ✅ Return 404 if not found
     @GetMapping("/{id}")
@@ -39,10 +42,12 @@ public class InvoiceController {
         return repository.findById(id)
                 .map(existing -> {
                     obj.setId(id);
-                    return ResponseEntity.ok(repository.save(obj));
+                    Invoice updated = repository.save(obj);
+                    return ResponseEntity.status(HttpStatus.CREATED).body(updated); // <-- return 201
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     // ✅ Return 404 if trying to delete non-existent invoice
     @DeleteMapping("/{id}")

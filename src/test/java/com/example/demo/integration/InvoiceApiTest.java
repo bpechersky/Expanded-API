@@ -2,14 +2,23 @@ package com.example.demo.integration;
 
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 public class InvoiceApiTest {
 
     private static final String BASE_URL = "http://localhost:8080/api/invoices";
+    private static final String TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ";
+
     private static Long createdInvoiceId;
+
+    @BeforeClass
+    public void setup() {
+        baseURI = "http://localhost:8080";
+    }
 
     @Test(priority = 1)
     public void testCreateInvoice() {
@@ -21,12 +30,13 @@ public class InvoiceApiTest {
             """;
 
         Response response = given()
+                .header("Authorization", TOKEN)
                 .contentType(ContentType.JSON)
                 .body(requestBody)
                 .when()
                 .post(BASE_URL)
                 .then()
-                .statusCode(anyOf(is(200), is(201)))
+                .statusCode(201)
                 .body("id", notNullValue())
                 .body("customerName", equalTo("Alice Smith"))
                 .body("amount", equalTo(250.0f))
@@ -38,6 +48,7 @@ public class InvoiceApiTest {
     @Test(priority = 2, dependsOnMethods = "testCreateInvoice")
     public void testGetAllInvoices() {
         given()
+                .header("Authorization", TOKEN)
                 .when()
                 .get(BASE_URL)
                 .then()
@@ -48,6 +59,7 @@ public class InvoiceApiTest {
     @Test(priority = 3, dependsOnMethods = "testCreateInvoice")
     public void testGetInvoiceById() {
         given()
+                .header("Authorization", TOKEN)
                 .pathParam("id", createdInvoiceId)
                 .when()
                 .get(BASE_URL + "/{id}")
@@ -67,13 +79,14 @@ public class InvoiceApiTest {
             """;
 
         given()
+                .header("Authorization", TOKEN)
                 .pathParam("id", createdInvoiceId)
                 .contentType(ContentType.JSON)
                 .body(updatedBody)
                 .when()
                 .put(BASE_URL + "/{id}")
                 .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("customerName", equalTo("Alice Johnson"))
                 .body("amount", equalTo(300.5f));
     }
@@ -81,14 +94,16 @@ public class InvoiceApiTest {
     @Test(priority = 5, dependsOnMethods = "testCreateInvoice")
     public void testDeleteInvoice() {
         given()
+                .header("Authorization", TOKEN)
                 .pathParam("id", createdInvoiceId)
                 .when()
                 .delete(BASE_URL + "/{id}")
                 .then()
-                .statusCode(anyOf(is(200), is(204)));
+                .statusCode((204));
 
-        // Optional: verify it's deleted
+        // Optional: verify deletion
         given()
+                .header("Authorization", TOKEN)
                 .pathParam("id", createdInvoiceId)
                 .when()
                 .get(BASE_URL + "/{id}")
