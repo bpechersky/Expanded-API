@@ -34,13 +34,24 @@ public class ReviewController {
 
 
     @PutMapping("/{id}")
-    public Review update(@PathVariable Long id, @RequestBody Review obj) {
-        obj.setId(id);
-        return repository.save(obj);
+    public ResponseEntity<Review> update(@PathVariable Long id, @RequestBody Review obj) {
+        return repository.findById(id)
+                .map(existing -> {
+                    obj.setId(id);
+                    return ResponseEntity.ok(repository.save(obj));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        repository.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        return repository.findById(id)
+                .<ResponseEntity<Void>>map(existing -> {
+                    repository.deleteById(id);
+                    return ResponseEntity.noContent().build(); // 204
+                })
+                .orElse(ResponseEntity.notFound().build());   // 404
     }
+
+
 }
