@@ -1,7 +1,9 @@
 package com.example.demo.integration;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.h2.command.Token;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -119,5 +121,74 @@ public class LiveProductApiTest {
                 .get("/api/products/" + productId)
                 .then()
                 .statusCode(anyOf(is(404), is(204)));
+    }
+    @Test
+    public void testCreateProduct_MissingName() {
+        String payload = "{ \"price\": 19.99 }";
+
+        given()
+                .header("Authorization", TOKEN)
+                .contentType(ContentType.JSON)
+                .body(payload)
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void testCreateProduct_BlankName() {
+        String payload = "{ \"name\": \"\", \"price\": 19.99 }";
+
+        given()
+                .contentType(ContentType.JSON)
+                .header("Authorization",  TOKEN)
+                .body(payload)
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void testCreateProduct_MissingPrice() {
+        String payload = "{ \"name\": \"Sample Product\" }";
+
+        given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", TOKEN)
+                .body(payload)
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void testCreateProduct_NegativePrice() {
+        String payload = "{ \"name\": \"Sample Product\", \"price\": -5 }";
+
+        given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", TOKEN)
+                .body(payload)
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    public void testCreateProduct_ZeroPrice() {
+        String payload = "{ \"name\": \"Sample Product\", \"price\": 0 }";
+
+        given()
+                .contentType(ContentType.JSON)
+                .header("Authorization", TOKEN)
+                .body(payload)
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(400);
     }
 }
