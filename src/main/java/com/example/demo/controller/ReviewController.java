@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ReviewRequest;
+import com.example.demo.model.Product;
 import com.example.demo.model.Review;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.ReviewRepository;
@@ -9,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -30,12 +34,17 @@ public class ReviewController {
 
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Review review) {
-        boolean exists = productRepository.existsById(review.getProduct().getId());
-        if (!exists) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Product with id " + review.getProduct().getId() + " does not exist.");
+    public ResponseEntity<?> create(@RequestBody ReviewRequest request) {
+        Optional<Product> productOpt = productRepository.findById(request.getProductId());
+        if (productOpt.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Product with id " + request.getProductId() + " does not exist."));
         }
+
+        Review review = new Review();
+        review.setProduct(productOpt.get());
+        review.setRating(request.getRating());
+        review.setComment(request.getComment());
 
         Review saved = reviewRepository.save(review);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
