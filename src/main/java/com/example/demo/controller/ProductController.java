@@ -1,8 +1,10 @@
-
+// src/main/java/com/example/demo/controller/ProductController.java
 package com.example.demo.controller;
 
+import com.example.demo.dto.ProductRequest;
 import com.example.demo.model.Product;
 import com.example.demo.repository.ProductRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,32 +36,30 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product,
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest request,
                                                  @AuthenticationPrincipal Jwt jwt) {
-        // Extract claims
-        String subject = jwt.getSubject(); // "sub" claim
+        String subject = jwt.getSubject();
         String name = jwt.getClaimAsString("name");
         Boolean isAdmin = jwt.getClaim("admin");
 
-        System.out.println("User Sub: " + subject);
-        System.out.println("Name: " + name);
-        System.out.println("Is Admin: " + isAdmin);
-
-        // (Optional) restrict based on claim
         if (!Boolean.TRUE.equals(isAdmin)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
 
         Product saved = repository.save(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable Long id, @RequestBody Product product) {
+    public ResponseEntity<Product> update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         return repository.findById(id)
                 .map(existing -> {
-                    existing.setName(product.getName());
-                    existing.setPrice(product.getPrice());
+                    existing.setName(request.getName());
+                    existing.setPrice(request.getPrice());
                     return ResponseEntity.ok(repository.save(existing));
                 })
                 .orElse(ResponseEntity.notFound().build());
@@ -68,7 +68,6 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         repository.deleteById(id);
-        return ResponseEntity.noContent().build(); // ✅ proper for Void
+        return ResponseEntity.noContent().build();
     }
-
 }
