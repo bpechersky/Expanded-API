@@ -17,20 +17,20 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class ProductController {
 
-    private final ProductRepository repository;
+    private final ProductRepository productRepository;
 
-    public ProductController(ProductRepository repository) {
-        this.repository = repository;
+    public ProductController(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
     @GetMapping
     public List<Product> getAll() {
-        return repository.findAll();
+        return productRepository.findAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> getById(@PathVariable Long id) {
-        return repository.findById(id)
+        return productRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -50,24 +50,27 @@ public class ProductController {
         product.setName(request.getName());
         product.setPrice(request.getPrice());
 
-        Product saved = repository.save(product);
+        Product saved = productRepository.save(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
-        return repository.findById(id)
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody ProductRequest request) {
+        return productRepository.findById(id)
                 .map(existing -> {
                     existing.setName(request.getName());
                     existing.setPrice(request.getPrice());
-                    return ResponseEntity.ok(repository.save(existing));
+                    Product updated = productRepository.save(existing);
+                    return ResponseEntity.ok(updated);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        repository.deleteById(id);
+        productRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

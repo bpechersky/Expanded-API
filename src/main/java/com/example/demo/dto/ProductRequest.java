@@ -1,18 +1,15 @@
-// src/main/java/com/example/demo/dto/ProductRequest.java
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Product update request payload")
 public class ProductRequest {
 
-    @NotBlank
+    @Schema(description = "Product name", example = "Updated Product")
     private String name;
 
-    @NotNull
-    @Positive
-    private Double price;
+    @Schema(description = "Product price", example = "99.99")
+    private double price;
 
     // Getters and setters
     public String getName() {
@@ -23,11 +20,11 @@ public class ProductRequest {
         this.name = name;
     }
 
-    public Double getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 }
