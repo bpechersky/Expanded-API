@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.*;
 
 public class FavoriteApiTest {
 
+    private static final String BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ"; // Replace with real token
     private static Long createdFavoriteId;
 
     @Test(priority = 1)
@@ -16,6 +17,7 @@ public class FavoriteApiTest {
         String requestBody = "{ \"userId\": 1, \"productId\": 1 }";
 
         Response response = given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .contentType(ContentType.JSON)
                 .body(requestBody)
                 .when()
@@ -26,15 +28,14 @@ public class FavoriteApiTest {
                 .body("productId", equalTo(1))
                 .extract().response();
 
-        createdFavoriteId = ((Number) response.path("userId")).longValue();
+        createdFavoriteId = ((Number) response.path("id")).longValue();
         System.out.println("Created Favorite ID: " + createdFavoriteId);
-
-
     }
 
     @Test(priority = 2, dependsOnMethods = "testCreateFavorite")
     public void testGetFavoriteById() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .get("/api/favorites/" + createdFavoriteId)
                 .then()
@@ -42,11 +43,10 @@ public class FavoriteApiTest {
                 .body("id", equalTo(createdFavoriteId.intValue()));
     }
 
-
-
     @Test(priority = 3)
     public void testGetAllFavorites() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .get("/api/favorites")
                 .then()
@@ -59,6 +59,7 @@ public class FavoriteApiTest {
         String updatedBody = "{ \"userId\": 1, \"productId\": 2 }";
 
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .contentType(ContentType.JSON)
                 .body(updatedBody)
                 .when()
@@ -71,6 +72,7 @@ public class FavoriteApiTest {
     @Test(priority = 5)
     public void testGetNonExistentFavorite() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .get("/api/favorites/999999")
                 .then()
@@ -80,6 +82,7 @@ public class FavoriteApiTest {
     @Test(priority = 6, dependsOnMethods = "testCreateFavorite")
     public void testDeleteFavorite() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .delete("/api/favorites/" + createdFavoriteId)
                 .then()
@@ -89,6 +92,7 @@ public class FavoriteApiTest {
     @Test(priority = 7)
     public void testDeleteNonExistentFavorite() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .delete("/api/favorites/999999")
                 .then()
