@@ -10,11 +10,15 @@ import lombok.*;
 @Entity
 @Table(name = "reviews")
 public class Review {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long productId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
     private int rating;
     private String comment;
 
