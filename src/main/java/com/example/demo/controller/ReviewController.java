@@ -60,14 +60,26 @@ public class ReviewController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<Review> update(@PathVariable Long id, @RequestBody Review obj) {
+    public ResponseEntity<?> updateReview(@PathVariable Long id, @RequestBody ReviewRequest request) {
         return reviewRepository.findById(id)
                 .map(existing -> {
-                    obj.setId(id);
-                    return ResponseEntity.ok(reviewRepository.save(obj));
+                    // Optional: validate product exists if needed
+                    Optional<Product> productOpt = productRepository.findById(request.getProductId());
+                    if (productOpt.isEmpty()) {
+                        return ResponseEntity.badRequest()
+                                .body("Product with id " + request.getProductId() + " does not exist.");
+                    }
+
+                    existing.setProduct(productOpt.get());
+                    existing.setRating(request.getRating());
+                    existing.setComment(request.getComment());
+
+                    Review updated = reviewRepository.save(existing);
+                    return ResponseEntity.ok(updated);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
