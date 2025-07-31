@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.*;
 public class ProductReviewsTest {
 
     private static final String BASE_URL = "http://localhost:8080";
-    private static final String TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ"; // 🔐 Replace with real token
+    private static final String TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ";
 
     @BeforeClass
     public void setup() {
@@ -25,17 +25,7 @@ public class ProductReviewsTest {
     public void postReview() {
         String uniqueName = "Reviewable Product " + UUID.randomUUID();
 
-        Response productResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"name\": \"" + uniqueName + "\", \"price\": 45.00}")
-                .when()
-                .post("/api/products")
-                .then()
-                .statusCode(201)
-                .extract().response();
-
-        int productId = productResponse.jsonPath().getInt("id");
+        int productId = createProduct(uniqueName, 45.00);
 
         given()
                 .header("Authorization", TOKEN)
@@ -52,17 +42,7 @@ public class ProductReviewsTest {
 
     @Test
     public void getAllReviews() {
-        Response productResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"name\": \"Reviewed Product\", \"price\": 65.00}")
-                .when()
-                .post("/api/products")
-                .then()
-                .statusCode(201)
-                .extract().response();
-
-        int productId = productResponse.jsonPath().getInt("id");
+        int productId = createProduct("Reviewed Product", 65.00);
 
         given()
                 .header("Authorization", TOKEN)
@@ -75,7 +55,6 @@ public class ProductReviewsTest {
 
         given()
                 .header("Authorization", TOKEN)
-                .contentType("application/json")
                 .when()
                 .get("/api/reviews")
                 .then()
@@ -86,33 +65,12 @@ public class ProductReviewsTest {
 
     @Test
     public void getReviewById() {
-        Response productResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"name\": \"Target Product\", \"price\": 88.00}")
-                .when()
-                .post("/api/products")
-                .then()
-                .statusCode(201)
-                .extract().response();
+        int productId = createProduct("Target Product", 88.00);
 
-        int productId = productResponse.jsonPath().getInt("id");
-
-        Response reviewResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"productId\": " + productId + ", \"rating\": 3, \"comment\": \"Average quality\"}")
-                .when()
-                .post("/api/reviews")
-                .then()
-                .statusCode(201)
-                .extract().response();
-
-        int reviewId = reviewResponse.jsonPath().getInt("id");
+        int reviewId = createReview(productId, 3, "Average quality");
 
         given()
                 .header("Authorization", TOKEN)
-                .contentType("application/json")
                 .when()
                 .get("/api/reviews/" + reviewId)
                 .then()
@@ -125,29 +83,9 @@ public class ProductReviewsTest {
 
     @Test
     public void updateReviewById() {
-        Response productResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"name\": \"Updatable Product\", \"price\": 77.00}")
-                .when()
-                .post("/api/products")
-                .then()
-                .statusCode(201)
-                .extract().response();
+        int productId = createProduct("Updatable Product", 77.00);
 
-        int productId = productResponse.jsonPath().getInt("id");
-
-        Response reviewResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"productId\": " + productId + ", \"rating\": 2, \"comment\": \"Needs improvement\"}")
-                .when()
-                .post("/api/reviews")
-                .then()
-                .statusCode(201)
-                .extract().response();
-
-        int reviewId = reviewResponse.jsonPath().getInt("id");
+        int reviewId = createReview(productId, 2, "Needs improvement");
 
         given()
                 .header("Authorization", TOKEN)
@@ -165,29 +103,8 @@ public class ProductReviewsTest {
 
     @Test
     public void deleteReviewById() {
-        Response productResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"name\": \"Product For Deletion\", \"price\": 59.99}")
-                .when()
-                .post("/api/products")
-                .then()
-                .statusCode(201)
-                .extract().response();
-
-        int productId = productResponse.jsonPath().getInt("id");
-
-        Response reviewResponse = given()
-                .header("Authorization", TOKEN)
-                .contentType("application/json")
-                .body("{\"productId\": " + productId + ", \"rating\": 1, \"comment\": \"Delete me\"}")
-                .when()
-                .post("/api/reviews")
-                .then()
-                .statusCode(201)
-                .extract().response();
-
-        int reviewId = reviewResponse.jsonPath().getInt("id");
+        int productId = createProduct("Product For Deletion", 59.99);
+        int reviewId = createReview(productId, 1, "Delete me");
 
         given()
                 .header("Authorization", TOKEN)
@@ -203,18 +120,13 @@ public class ProductReviewsTest {
                 .then()
                 .statusCode(404);
     }
+
     @Test
     public void testReviewForNonExistentProduct() {
         given()
                 .header("Authorization", TOKEN)
                 .contentType(ContentType.JSON)
-                .body("{\n" +
-                        "  \"product\": {\n" +
-                        "    \"id\": 999\n" +
-                        "  },\n" +
-                        "  \"rating\": 5,\n" +
-                        "  \"comment\": \"exclellento\"\n" +
-                        "}")
+                .body("{\"productId\": 99999, \"rating\": 5, \"comment\": \"invalid product id\"}")
                 .when()
                 .post("/api/reviews")
                 .then()
@@ -222,4 +134,29 @@ public class ProductReviewsTest {
                 .body(containsString("does not exist"));
     }
 
+    private int createProduct(String name, double price) {
+        Response productResponse = given()
+                .header("Authorization", TOKEN)
+                .contentType(ContentType.JSON)
+                .body("{\"name\": \"" + name + "\", \"price\": " + price + "}")
+                .when()
+                .post("/api/products")
+                .then()
+                .statusCode(201)
+                .extract().response();
+        return productResponse.jsonPath().getInt("id");
+    }
+
+    private int createReview(int productId, int rating, String comment) {
+        Response reviewResponse = given()
+                .header("Authorization", TOKEN)
+                .contentType(ContentType.JSON)
+                .body("{\"productId\": " + productId + ", \"rating\": " + rating + ", \"comment\": \"" + comment + "\"}")
+                .when()
+                .post("/api/reviews")
+                .then()
+                .statusCode(201)
+                .extract().response();
+        return reviewResponse.jsonPath().getInt("id");
+    }
 }

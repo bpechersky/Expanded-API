@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ReviewRequest;
+import com.example.demo.dto.ReviewResponse;
 import com.example.demo.model.Product;
 import com.example.demo.model.Review;
 import com.example.demo.repository.ProductRepository;
@@ -47,38 +48,45 @@ public class ReviewController {
         review.setComment(request.getComment());
 
         Review saved = reviewRepository.save(review);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ReviewResponse(saved));
     }
 
 
+
     @GetMapping("/{id}")
-    public ResponseEntity<Review> getById(@PathVariable Long id) {
+    public ResponseEntity<?> getById(@PathVariable Long id) {
         return reviewRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(review -> ResponseEntity.ok(new ReviewResponse(review)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
 
+
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateReview(@PathVariable Long id, @RequestBody ReviewRequest request) {
-        return reviewRepository.findById(id)
-                .map(existing -> {
-                    // Optional: validate product exists if needed
-                    Optional<Product> productOpt = productRepository.findById(request.getProductId());
-                    if (productOpt.isEmpty()) {
-                        return ResponseEntity.badRequest()
-                                .body("Product with id " + request.getProductId() + " does not exist.");
-                    }
+        Optional<Review> optionalReview = reviewRepository.findById(id);
+        if (optionalReview.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Review not found"));
+        }
 
-                    existing.setProduct(productOpt.get());
-                    existing.setRating(request.getRating());
-                    existing.setComment(request.getComment());
+        Optional<Product> optionalProduct = productRepository.findById(request.getProductId());
+        if (optionalProduct.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Product not found"));
+        }
 
-                    Review updated = reviewRepository.save(existing);
-                    return ResponseEntity.ok(updated);
-                })
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        Review review = optionalReview.get();
+        review.setProduct(optionalProduct.get());
+        review.setRating(request.getRating());
+        review.setComment(request.getComment());
+
+        Review updatedReview = reviewRepository.save(review);
+        return ResponseEntity.ok(new ReviewResponse(updatedReview));
     }
+
+
 
 
     @DeleteMapping("/{id}")
