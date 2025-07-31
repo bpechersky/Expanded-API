@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.*;
 
 public class CategoryApiTest {
 
+    private static final String BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ";
     private static Long categoryId;
 
     @Test
@@ -16,6 +17,7 @@ public class CategoryApiTest {
         String payload = "{ \"name\": \"Electronics\" }";
 
         Response response = given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .contentType(ContentType.JSON)
                 .body(payload)
                 .when()
@@ -32,6 +34,7 @@ public class CategoryApiTest {
     @Test(dependsOnMethods = "testCreateCategory")
     public void testGetCategoryById() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .get("/api/categories/" + categoryId)
                 .then()
@@ -43,6 +46,7 @@ public class CategoryApiTest {
     @Test(dependsOnMethods = "testGetCategoryById")
     public void testGetAllCategories() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .get("/api/categories")
                 .then()
@@ -55,6 +59,7 @@ public class CategoryApiTest {
         String updatedPayload = "{ \"name\": \"Updated Electronics\" }";
 
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .contentType(ContentType.JSON)
                 .body(updatedPayload)
                 .when()
@@ -68,6 +73,7 @@ public class CategoryApiTest {
     @Test(dependsOnMethods = "testUpdateCategory")
     public void testDeleteCategory() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .delete("/api/categories/" + categoryId)
                 .then()
@@ -77,6 +83,7 @@ public class CategoryApiTest {
     @Test(dependsOnMethods = "testDeleteCategory")
     public void testGetNonExistentCategory() {
         given()
+                .header("Authorization", "Bearer " + BEARER_TOKEN)
                 .when()
                 .get("/api/categories/" + categoryId)
                 .then()
