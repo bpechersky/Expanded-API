@@ -1,6 +1,7 @@
 package com.example.demo.integration;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -202,4 +203,23 @@ public class ProductReviewsTest {
                 .then()
                 .statusCode(404);
     }
+    @Test
+    public void testReviewForNonExistentProduct() {
+        given()
+                .header("Authorization", TOKEN)
+                .contentType(ContentType.JSON)
+                .body("{\n" +
+                        "  \"product\": {\n" +
+                        "    \"id\": 999\n" +
+                        "  },\n" +
+                        "  \"rating\": 5,\n" +
+                        "  \"comment\": \"exclellento\"\n" +
+                        "}")
+                .when()
+                .post("/api/reviews")
+                .then()
+                .statusCode(400)
+                .body(containsString("does not exist"));
+    }
+
 }
