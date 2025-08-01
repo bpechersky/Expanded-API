@@ -9,15 +9,11 @@ import java.util.List;
 @Schema(description = "Invoice creation payload")
 public class InvoiceRequest {
 
-    @Schema(description = "Name of the customer", example = "Alice Johnson", required = true)
     @NotBlank(message = "Customer name must not be blank")
     private String customerName;
 
-    @Schema(description = "List of invoice items")
     @NotEmpty(message = "Invoice must contain at least one item")
     private List<InvoiceItemRequest> items;
-
-    // Getters and Setters
 
     public String getCustomerName() {
         return customerName;
@@ -33,5 +29,11 @@ public class InvoiceRequest {
 
     public void setItems(List<InvoiceItemRequest> items) {
         this.items = items;
+    }
+
+    public double getAmount() {
+        return items.stream()
+                .mapToDouble(item -> item.getQuantity() * item.getUnitPrice())
+                .sum();
     }
 }

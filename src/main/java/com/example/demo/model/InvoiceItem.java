@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "invoice_items")
 public class InvoiceItem {
@@ -14,15 +14,15 @@ public class InvoiceItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "invoice_id", nullable = false)
-    private Invoice invoice;
+    private String description;
+    private int quantity;
+    private double unitPrice;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "product_id")
     private Product product;
 
-    private int quantity;
-
-    private double unitPrice;
+    @ManyToOne
+    @JoinColumn(name = "invoice_id")
+    private Invoice invoice;
 }

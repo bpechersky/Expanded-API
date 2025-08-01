@@ -27,8 +27,9 @@ public class InvoiceApiTest {
           "customerName": "Alice Smith",
           "items": [
             {
-              "productId": 1,
-              "quantity": 2
+                "productId": 1,
+                "quantity": 2,
+                "unitPrice": 10
             }
           ]
         }
