@@ -26,9 +26,16 @@ public class InvoiceController {
 
     @PostMapping
     public ResponseEntity<InvoiceResponse> createInvoice(@Valid @RequestBody InvoiceRequest request) {
+        double totalAmount = request.getItems().stream()
+                .mapToDouble(item -> {
+                    // You should fetch the product price from DB
+                    // For now, assuming each product has fixed price $10
+                    return item.getQuantity() * 10.0;
+                }).sum();
+
         Invoice invoice = new Invoice();
         invoice.setCustomerName(request.getCustomerName());
-        invoice.setAmount(request.getAmount());
+        invoice.setAmount(totalAmount);
 
         Invoice saved = invoiceRepository.save(invoice);
         return ResponseEntity.status(HttpStatus.CREATED).body(new InvoiceResponse(saved));
