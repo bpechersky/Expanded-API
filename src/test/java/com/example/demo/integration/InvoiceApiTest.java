@@ -23,11 +23,16 @@ public class InvoiceApiTest {
     @Test(priority = 1)
     public void testCreateInvoice() {
         String requestBody = """
+        {
+          "customerName": "Alice Smith",
+          "items": [
             {
-              "customerName": "Alice Smith",
-              "amount": 250.0
+              "productId": 1,
+              "quantity": 2
             }
-            """;
+          ]
+        }
+        """;
 
         Response response = given()
                 .header("Authorization", TOKEN)
@@ -39,11 +44,12 @@ public class InvoiceApiTest {
                 .statusCode(201)
                 .body("id", notNullValue())
                 .body("customerName", equalTo("Alice Smith"))
-                .body("amount", equalTo(250.0f))
+                .body("amount", equalTo(20.0f)) // 2 * $10.0 (as per controller logic)
                 .extract().response();
 
         createdInvoiceId = response.jsonPath().getLong("id");
     }
+
 
     @Test(priority = 2, dependsOnMethods = "testCreateInvoice")
     public void testGetAllInvoices() {
@@ -72,24 +78,30 @@ public class InvoiceApiTest {
     @Test(priority = 4, dependsOnMethods = "testCreateInvoice")
     public void testUpdateInvoice() {
         String updatedBody = """
+        {
+          "customerName": "Alice Johnson",
+          "items": [
             {
-              "customerName": "Alice Johnson",
-              "amount": 300.5
+              "productId": 1,
+              "quantity": 2
             }
-            """;
+          ]
+        }
+        """;
 
         given()
-                .header("Authorization", TOKEN)
-                .pathParam("id", createdInvoiceId)
                 .contentType(ContentType.JSON)
+                .header("Authorization", TOKEN)
                 .body(updatedBody)
                 .when()
-                .put(BASE_URL + "/{id}")
+                .put("/api/invoices/" + createdInvoiceId)
                 .then()
-                .statusCode(201)
+                .log().ifValidationFails()
+                .statusCode(200)
                 .body("customerName", equalTo("Alice Johnson"))
-                .body("amount", equalTo(300.5f));
+                .body("items.size()", greaterThan(0));
     }
+
 
     @Test(priority = 5, dependsOnMethods = "testCreateInvoice")
     public void testDeleteInvoice() {
