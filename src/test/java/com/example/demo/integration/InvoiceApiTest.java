@@ -14,45 +14,72 @@ public class InvoiceApiTest {
     private static final String TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.ROhlL_pf4HiRBoz4bP95Lz4UnGMVPOlpsNKl7DiHeLQ";
 
     private static Long createdInvoiceId;
+    private static Long createdProductId;
 
     @BeforeClass
     public void setup() {
         baseURI = "http://localhost:8080";
     }
 
+    @Test
+    public void sanityCheck() {
+        System.out.println("TestNG is running!");
+    }
+
     @Test(priority = 1)
-    public void testCreateInvoice() {
-        String requestBody = """
+    public void createProductForInvoice() {
+        String productPayload = """
         {
-          "customerName": "Alice Smith",
-          "items": [
-            {
-                "productId": 1,
-                "quantity": 2,
-                "unitPrice": 10
-            }
-          ]
+            "name": "Test Product",
+            "price": 10.0
         }
         """;
 
         Response response = given()
-                .header("Authorization", TOKEN)
                 .contentType(ContentType.JSON)
-                .body(requestBody)
+                .body(productPayload)
+                .header("Authorization", TOKEN)
                 .when()
-                .post(BASE_URL)
+                .post("/api/products")
                 .then()
                 .statusCode(201)
-                .body("id", notNullValue())
+                .extract()
+                .response();
+
+        createdProductId = response.jsonPath().getLong("id");
+    }
+
+    @Test(priority = 2, dependsOnMethods = "createProductForInvoice")
+    public void createInvoiceWithProduct() {
+        String invoicePayload = String.format("""
+        {
+            "customerName": "Alice Smith",
+            "items": [
+                {
+                    "productId": %d,
+                    "quantity": 2,
+                    "unitPrice": 10.0
+                }
+            ]
+        }
+        """, createdProductId);
+
+        Response response = given()
+                .contentType(ContentType.JSON)
+                .body(invoicePayload)
+                .header("Authorization", TOKEN)
+                .when()
+                .post("/api/invoices")
+                .then()
+                .statusCode(201)
                 .body("customerName", equalTo("Alice Smith"))
-                .body("amount", equalTo(20.0f)) // 2 * $10.0 (as per controller logic)
+                .body("amount", equalTo(20.0F)) // float comparison
                 .extract().response();
 
         createdInvoiceId = response.jsonPath().getLong("id");
     }
 
-
-    @Test(priority = 2, dependsOnMethods = "testCreateInvoice")
+    @Test(priority = 3, dependsOnMethods = "createInvoiceWithProduct")
     public void testGetAllInvoices() {
         given()
                 .header("Authorization", TOKEN)
@@ -63,7 +90,7 @@ public class InvoiceApiTest {
                 .body("$", not(empty()));
     }
 
-    @Test(priority = 3, dependsOnMethods = "testCreateInvoice")
+    @Test(priority = 4, dependsOnMethods = "createInvoiceWithProduct")
     public void testGetInvoiceById() {
         given()
                 .header("Authorization", TOKEN)
@@ -76,19 +103,20 @@ public class InvoiceApiTest {
                 .body("customerName", equalTo("Alice Smith"));
     }
 
-    @Test(priority = 4, dependsOnMethods = "testCreateInvoice")
+    @Test(priority = 5, dependsOnMethods = "createInvoiceWithProduct")
     public void testUpdateInvoice() {
-        String updatedBody = """
+        String updatedBody = String.format("""
         {
           "customerName": "Alice Johnson",
           "items": [
             {
-              "productId": 1,
-              "quantity": 2
+              "productId": %d,
+              "quantity": 3,
+              "unitPrice": 10.0
             }
           ]
         }
-        """;
+        """, createdProductId);
 
         given()
                 .contentType(ContentType.JSON)
@@ -99,12 +127,14 @@ public class InvoiceApiTest {
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)
+                .body("$", hasKey("customerName"))
+                .body("$", hasKey("amount"))
                 .body("customerName", equalTo("Alice Johnson"))
+                .body("items", notNullValue())
                 .body("items.size()", greaterThan(0));
     }
 
-
-    @Test(priority = 5, dependsOnMethods = "testCreateInvoice")
+    @Test(priority = 6, dependsOnMethods = "createInvoiceWithProduct")
     public void testDeleteInvoice() {
         given()
                 .header("Authorization", TOKEN)
@@ -112,9 +142,9 @@ public class InvoiceApiTest {
                 .when()
                 .delete(BASE_URL + "/{id}")
                 .then()
-                .statusCode((204));
+                .statusCode(204);
 
-        // Optional: verify deletion
+        // Verify deletion
         given()
                 .header("Authorization", TOKEN)
                 .pathParam("id", createdInvoiceId)

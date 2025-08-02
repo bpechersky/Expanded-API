@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Expanded API Test Suite">
+    <test name="Integration Tests">
+        <classes>
+            <class name="com.example.demo.integration.InvoiceApiTest"/>
+<!--            <class name="com.example.demo.integration.CategoryApiTest"/>
+            <class name="com.example.demo.integration.FavoriteApiTest"/>
+            <class name="com.example.demo.integration.LiveProductApiTest"/>
+            <class name="com.example.demo.integration.ProductReviewsTest"/>
+            <class name="com.example.demo.integration.DummyTest" />-->
+        </classes>
+    </test>
+</suite>
